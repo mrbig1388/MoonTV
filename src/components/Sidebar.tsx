@@ -142,22 +142,22 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       href: '/douban?type=show',
     },
     {
-      icon: calendar,
+      icon: History,
       label: 'My-CMS',
       href: 'https://400821.xyz/vip',
     },
     {
-      icon: monitor-dot,
+      icon: Rocket,
       label: 'My-Cloud',
       href: 'https://200805.xyz',
     },
     {
-      icon: sparkles,
+      icon: Radio,
       label: '红月解析UI',
       href: 'https://400821.xyz/vip',
     },
     {
-      icon: dna-off,
+      icon: Clapperboard,
       label: 'API中转代理服务',
       href: 'https://timis.dpdns.org',
     },
