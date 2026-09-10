@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronUp, Clover, Film, Home, Search, Tv } from 'lucide-react';
+import { ChevronUp, Clover, Film, Home, Search, Tv, History, Rocket, Radio, Clapperboard  } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
