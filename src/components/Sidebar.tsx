@@ -19,7 +19,7 @@ interface SidebarContextType {
 }
 
 const SidebarContext = createContext<SidebarContextType>({
-  isCollapsed: false,
+  isCollapsed: true,
 });
 
 export const useSidebar = () => useContext(SidebarContext);
