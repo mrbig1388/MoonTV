@@ -18,6 +18,7 @@ interface SidebarContextType {
   isCollapsed: boolean;
 }
 
+// 1. Context 默认值改为 true (默认折叠)
 const SidebarContext = createContext<SidebarContextType>({
   isCollapsed: true,
 });
@@ -55,7 +56,8 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  // 若同一次 SPA 会话中已经读取过折叠状态，则直接复用，避免闪烁
+  
+  // 2. 初始化状态：若有缓存读取缓存，否则默认返回 true (折叠状态)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     if (
       typeof window !== 'undefined' &&
@@ -63,7 +65,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     ) {
       return window.__sidebarCollapsed;
     }
-    return false; // 默认展开
+    return true; // 修改此处：默认折叠/隐藏
   });
 
   // 首次挂载时读取 localStorage，以便刷新后仍保持上次的折叠状态
@@ -73,6 +75,10 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       const val = JSON.parse(saved);
       setIsCollapsed(val);
       window.__sidebarCollapsed = val;
+    } else {
+       // 如果没有缓存记录，我们也可以主动存入默认的折叠状态
+       localStorage.setItem('sidebarCollapsed', JSON.stringify(true));
+       window.__sidebarCollapsed = true;
     }
   }, []);
 
@@ -262,6 +268,8 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             </div>
           </div>
         </aside>
+        
+        {/* 这里负责撑开主内容区域的左侧边距，根据状态变化宽度 */}
         <div
           className={`transition-all duration-300 sidebar-offset ${
             isCollapsed ? 'w-16' : 'w-64'
