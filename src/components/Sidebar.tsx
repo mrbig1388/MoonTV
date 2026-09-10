@@ -143,18 +143,23 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     },
     {
       icon: Clover,
-      label: '综艺',
-      href: '/douban?type=show',
-    },
-    {
-      icon: Clover,
-      label: '综艺',
+      label: 'My-CMS',
       href: 'https://400821.xyz/vip',
     },
     {
       icon: Clover,
-      label: '综艺',
-      href: '/douban?type=show',
+      label: 'My-Cloud',
+      href: 'https://200805.xyz',
+    },
+    {
+      icon: Clover,
+      label: '红月解析UI',
+      href: 'https://400821.xyz/vip',
+    },
+    {
+      icon: Clover,
+      label: 'API中转代理服务',
+      href: 'https://timis.dpdns.org',
     },
   ];
 
