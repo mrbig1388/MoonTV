@@ -97,8 +97,8 @@ function LoginPageClient() {
       </div>
       <div className='relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-white/90 via-white/70 to-white/40 dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-zinc-900/40 backdrop-blur-xl shadow-2xl p-10 dark:border dark:border-zinc-800'>
         
-        {/* 修改了这里的 h1 样式 */}
-        <h1 className='tracking-tight text-center text-3xl font-extrabold mb-8 drop-shadow-sm bg-clip-text text-transparent bg-gradient-to-r from-rose-500 via-fuchsia-500 to-indigo-500'>
+        {/* 修改了这里的 h1 样式，使用猩红色 (text-red-600) */}
+        <h1 className='tracking-tight text-center text-3xl font-extrabold mb-8 drop-shadow-sm text-red-600 dark:text-red-500'>
           {siteName}
         </h1>
         
