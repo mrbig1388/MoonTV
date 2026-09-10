@@ -141,6 +141,21 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       label: '综艺',
       href: '/douban?type=show',
     },
+    {
+      icon: Clover,
+      label: '综艺',
+      href: '/douban?type=show',
+    },
+    {
+      icon: Clover,
+      label: '综艺',
+      href: 'https://400821.xyz/vip',
+    },
+    {
+      icon: Clover,
+      label: '综艺',
+      href: '/douban?type=show',
+    },
   ];
 
   return (
