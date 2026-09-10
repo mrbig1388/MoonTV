@@ -18,14 +18,14 @@ interface SidebarContextType {
   isCollapsed: boolean;
 }
 
-// 1. Context 默认值改为 true (默认折叠/隐藏)
+// 1. Context 默认值改为 false (默认展开)
 const SidebarContext = createContext<SidebarContextType>({
-  isCollapsed: true,
+  isCollapsed: false,
 });
 
 export const useSidebar = () => useContext(SidebarContext);
 
-// 提取的 Logo 组件，调整为水平布局自适应
+// 2. 替换为图片 Logo
 const Logo = () => {
   const { siteName } = useSite();
   return (
@@ -33,9 +33,11 @@ const Logo = () => {
       href='/'
       className='flex items-center justify-center h-full select-none hover:opacity-80 transition-opacity duration-200'
     >
-      <span className='text-xl font-bold text-green-600 tracking-tight whitespace-nowrap'>
-        {siteName}
-      </span>
+      <img
+        src='/logo.png'
+        alt={siteName || 'Site Logo'}
+        className='h-8 w-auto object-contain' // 限制高度，宽度自适应
+      />
     </Link>
   );
 };
@@ -56,7 +58,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // 初始化状态：默认为 true (收起状态)
+  // 3. 初始化状态：默认为 false (展开状态)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     if (
       typeof window !== 'undefined' &&
@@ -64,7 +66,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     ) {
       return window.__sidebarCollapsed;
     }
-    return true; // 默认收起
+    return false; // 默认展开
   });
 
   useLayoutEffect(() => {
@@ -74,9 +76,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       setIsCollapsed(val);
       window.__sidebarCollapsed = val;
     } else {
-      // 首次加载主动写入收起状态
-      localStorage.setItem('sidebarCollapsed', JSON.stringify(true));
-      window.__sidebarCollapsed = true;
+      // 首次加载主动写入展开状态
+      localStorage.setItem('sidebarCollapsed', JSON.stringify(false));
+      window.__sidebarCollapsed = false;
     }
   }, []);
 
@@ -144,7 +146,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   return (
     <SidebarContext.Provider value={contextValue}>
       <div className='hidden md:block'>
-        {/* 侧边栏改为固定在底部的水平栏 */}
+        {/* 底部导航主容器 */}
         <aside
           data-sidebar
           className={`fixed bottom-0 left-0 right-0 w-full bg-white/90 backdrop-blur-xl transition-transform duration-300 ease-in-out border-t border-gray-200/50 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:bg-gray-900/90 dark:border-gray-700/50 ${
@@ -155,11 +157,11 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             WebkitBackdropFilter: 'blur(20px)',
           }}
         >
-          {/* 展开/收起 居中把手按钮 */}
-          <div className='absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex justify-center pointer-events-none'>
+          {/* 4. 展开/收起 提拉按钮：放置在导航栏右侧（right-8） */}
+          <div className='absolute top-0 right-8 -translate-y-full flex justify-center pointer-events-none'>
             <button
               onClick={handleToggle}
-              className='pointer-events-auto flex items-center justify-center gap-1.5 px-5 py-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-t-xl border-t border-x border-gray-200/60 dark:border-gray-700/60 shadow-sm text-gray-500 hover:text-green-600 transition-colors dark:text-gray-400 dark:hover:text-green-400 text-xs font-medium'
+              className='pointer-events-auto flex items-center justify-center gap-1.5 px-4 py-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-t-xl border-t border-x border-gray-200/60 dark:border-gray-700/60 shadow-sm text-gray-500 hover:text-green-600 transition-colors dark:text-gray-400 dark:hover:text-green-400 text-xs font-medium'
             >
               <span>{isCollapsed ? '展开导航' : '收起导航'}</span>
               <ChevronUp
@@ -170,15 +172,15 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             </button>
           </div>
 
-          {/* 底部栏主体内容：水平排列 */}
-          <div className='flex h-16 items-center px-6 justify-between max-w-screen-2xl mx-auto'>
-            {/* 左侧 Logo */}
-            <div className='flex-shrink-0 mr-8'>
+          {/* 底部栏主体内容：相对定位容器 */}
+          <div className='relative flex h-16 items-center px-6 max-w-screen-2xl mx-auto'>
+            {/* 左侧 Logo：通过 absolute 绝对定位使其脱离文档流，不干扰中间菜单居中 */}
+            <div className='absolute left-6 h-full flex items-center z-10'>
               <Logo />
             </div>
 
-            {/* 右侧导航项 */}
-            <nav className='flex flex-1 items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar'>
+            {/* 居中导航项：w-full 占满且 justify-center */}
+            <nav className='flex w-full items-center justify-center gap-2 md:gap-4 overflow-x-auto no-scrollbar'>
               <Link
                 href='/'
                 onClick={() => setActive('/')}
@@ -238,7 +240,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
           </div>
         </aside>
 
-        {/* 宽度置为 0，防止撑开 PageLayout 中原本给侧边栏预留的网格（Grid）列宽，实现全屏居中 */}
+        {/* 占位宽度置为 0 */}
         <div className='w-0 h-0 hidden sidebar-offset'></div>
       </div>
     </SidebarContext.Provider>
