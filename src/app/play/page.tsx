@@ -66,7 +66,7 @@ function PlayPageClient() {
   }, [blockAdEnabled]);
 
   // ==========================================
-  // 新增：跳过片头/片尾时长状态 (单位：秒)
+  // 跳过片头/片尾时长状态 (单位：秒)
   // 从 localStorage 继承上次设置，加上 try-catch 防止 SSR 构建报错
   // ==========================================
   const [skipIntroTime, setSkipIntroTime] = useState<number>(() => {
@@ -1116,7 +1116,7 @@ function PlayPageClient() {
     } catch (err) {
       setError('播放器初始化失败');
     }
-  }, [Artplayer, Hls, videoUrl, loading, blockAdEnabled]); // 取消外部的跳过设置依赖，使其由内部读取 Ref 控制
+  }, [Artplayer, Hls, videoUrl, loading, blockAdEnabled]);
 
   useEffect(() => {
     return () => {
@@ -1229,8 +1229,9 @@ function PlayPageClient() {
               className='group relative flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-800 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-200'
               title={isEpisodeSelectorCollapsed ? '显示选集面板' : '隐藏选集面板'}
             >
+              {/* === 此处已将 strokeLineWidth 修正为 strokeWidth === */}
               <svg className={`w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${isEpisodeSelectorCollapsed ? 'rotate-180' : 'rotate-0'}`} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeLineWidth='2' d='M9 5l7 7-7 7' />
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 5l7 7-7 7' />
               </svg>
               <span className='text-xs font-medium text-gray-600 dark:text-gray-300'>{isEpisodeSelectorCollapsed ? '显示' : '隐藏'}</span>
               <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-200 ${isEpisodeSelectorCollapsed ? 'bg-orange-400 animate-pulse' : 'bg-green-400'}`}></div>
