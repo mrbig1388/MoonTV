@@ -1,6 +1,6 @@
 'use client';
 
-import { Clover, Film, Home, Menu, Search, Tv } from 'lucide-react';
+import { ChevronUp, Clover, Film, Home, Search, Tv } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -18,22 +18,22 @@ interface SidebarContextType {
   isCollapsed: boolean;
 }
 
-// 1. Context 默认值改为 true (默认折叠)
+// 1. Context 默认值改为 true (默认折叠/隐藏)
 const SidebarContext = createContext<SidebarContextType>({
   isCollapsed: true,
 });
 
 export const useSidebar = () => useContext(SidebarContext);
 
-// 可替换为你自己的 logo 图片
+// 提取的 Logo 组件，调整为水平布局自适应
 const Logo = () => {
   const { siteName } = useSite();
   return (
     <Link
       href='/'
-      className='flex items-center justify-center h-16 select-none hover:opacity-80 transition-opacity duration-200'
+      className='flex items-center justify-center h-full select-none hover:opacity-80 transition-opacity duration-200'
     >
-      <span className='text-2xl font-bold text-green-600 tracking-tight'>
+      <span className='text-xl font-bold text-green-600 tracking-tight whitespace-nowrap'>
         {siteName}
       </span>
     </Link>
@@ -45,7 +45,6 @@ interface SidebarProps {
   activePath?: string;
 }
 
-// 在浏览器环境下通过全局变量缓存折叠状态，避免组件重新挂载时出现初始值闪烁
 declare global {
   interface Window {
     __sidebarCollapsed?: boolean;
@@ -56,8 +55,8 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
-  // 2. 初始化状态：若有缓存读取缓存，否则默认返回 true (折叠状态)
+
+  // 初始化状态：默认为 true (收起状态)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     if (
       typeof window !== 'undefined' &&
@@ -65,10 +64,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     ) {
       return window.__sidebarCollapsed;
     }
-    return true; // 修改此处：默认折叠/隐藏
+    return true; // 默认收起
   });
 
-  // 首次挂载时读取 localStorage，以便刷新后仍保持上次的折叠状态
   useLayoutEffect(() => {
     const saved = localStorage.getItem('sidebarCollapsed');
     if (saved !== null) {
@@ -76,13 +74,12 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       setIsCollapsed(val);
       window.__sidebarCollapsed = val;
     } else {
-       // 如果没有缓存记录，我们也可以主动存入默认的折叠状态
-       localStorage.setItem('sidebarCollapsed', JSON.stringify(true));
-       window.__sidebarCollapsed = true;
+      // 首次加载主动写入收起状态
+      localStorage.setItem('sidebarCollapsed', JSON.stringify(true));
+      window.__sidebarCollapsed = true;
     }
   }, []);
 
-  // 当折叠状态变化时，同步到 <html> data 属性，供首屏 CSS 使用
   useLayoutEffect(() => {
     if (typeof document !== 'undefined') {
       if (isCollapsed) {
@@ -96,11 +93,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   const [active, setActive] = useState(activePath);
 
   useEffect(() => {
-    // 优先使用传入的 activePath
     if (activePath) {
       setActive(activePath);
     } else {
-      // 否则使用当前路径
       const getCurrentFullPath = () => {
         const queryString = searchParams.toString();
         return queryString ? `${pathname}?${queryString}` : pathname;
@@ -148,59 +143,52 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
 
   return (
     <SidebarContext.Provider value={contextValue}>
-      {/* 在移动端隐藏侧边栏 */}
-      <div className='hidden md:flex'>
+      <div className='hidden md:block'>
+        {/* 侧边栏改为固定在底部的水平栏 */}
         <aside
           data-sidebar
-          className={`fixed top-0 left-0 h-screen bg-white/40 backdrop-blur-xl transition-all duration-300 border-r border-gray-200/50 z-10 shadow-lg dark:bg-gray-900/70 dark:border-gray-700/50 ${
-            isCollapsed ? 'w-16' : 'w-64'
+          className={`fixed bottom-0 left-0 right-0 w-full bg-white/90 backdrop-blur-xl transition-transform duration-300 ease-in-out border-t border-gray-200/50 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:bg-gray-900/90 dark:border-gray-700/50 ${
+            isCollapsed ? 'translate-y-full' : 'translate-y-0'
           }`}
           style={{
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
           }}
         >
-          <div className='flex h-full flex-col'>
-            {/* 顶部 Logo 区域 */}
-            <div className='relative h-16'>
-              <div
-                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
-                  isCollapsed ? 'opacity-0' : 'opacity-100'
+          {/* 展开/收起 居中把手按钮 */}
+          <div className='absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full flex justify-center pointer-events-none'>
+            <button
+              onClick={handleToggle}
+              className='pointer-events-auto flex items-center justify-center gap-1.5 px-5 py-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-t-xl border-t border-x border-gray-200/60 dark:border-gray-700/60 shadow-sm text-gray-500 hover:text-green-600 transition-colors dark:text-gray-400 dark:hover:text-green-400 text-xs font-medium'
+            >
+              <span>{isCollapsed ? '展开导航' : '收起导航'}</span>
+              <ChevronUp
+                className={`h-4 w-4 transition-transform duration-300 ${
+                  isCollapsed ? '' : 'rotate-180'
                 }`}
-              >
-                <div className='w-[calc(100%-4rem)] flex justify-center'>
-                  {!isCollapsed && <Logo />}
-                </div>
-              </div>
-              <button
-                onClick={handleToggle}
-                className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 z-10 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700/50 ${
-                  isCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-2'
-                }`}
-              >
-                <Menu className='h-4 w-4' />
-              </button>
+              />
+            </button>
+          </div>
+
+          {/* 底部栏主体内容：水平排列 */}
+          <div className='flex h-16 items-center px-6 justify-between max-w-screen-2xl mx-auto'>
+            {/* 左侧 Logo */}
+            <div className='flex-shrink-0 mr-8'>
+              <Logo />
             </div>
 
-            {/* 首页和搜索导航 */}
-            <nav className='px-2 mt-4 space-y-1'>
+            {/* 右侧导航项 */}
+            <nav className='flex flex-1 items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar'>
               <Link
                 href='/'
                 onClick={() => setActive('/')}
                 data-active={active === '/'}
-                className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${
-                  isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                } gap-3 justify-start`}
+                className='group flex items-center justify-center rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100/50 hover:text-green-600 data-[active=true]:bg-green-500/10 data-[active=true]:text-green-700 font-medium transition-colors duration-200 dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 gap-2 flex-shrink-0'
               >
-                <div className='w-4 h-4 flex items-center justify-center'>
-                  <Home className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
-                </div>
-                {!isCollapsed && (
-                  <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
-                    首页
-                  </span>
-                )}
+                <Home className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
+                <span>首页</span>
               </Link>
+              
               <Link
                 href='/search'
                 onClick={(e) => {
@@ -209,72 +197,49 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   setActive('/search');
                 }}
                 data-active={active === '/search'}
-                className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${
-                  isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                } gap-3 justify-start`}
+                className='group flex items-center justify-center rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100/50 hover:text-green-600 data-[active=true]:bg-green-500/10 data-[active=true]:text-green-700 font-medium transition-colors duration-200 dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 gap-2 flex-shrink-0'
               >
-                <div className='w-4 h-4 flex items-center justify-center'>
-                  <Search className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
-                </div>
-                {!isCollapsed && (
-                  <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
-                    搜索
-                  </span>
-                )}
+                <Search className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
+                <span>搜索</span>
               </Link>
+
+              {/* 视觉分隔线 */}
+              <div className='w-px h-5 bg-gray-300 dark:bg-gray-700 mx-1 flex-shrink-0'></div>
+
+              {menuItems.map((item) => {
+                const typeMatch = item.href.match(/type=([^&]+)/)?.[1];
+                const tagMatch = item.href.match(/tag=([^&]+)/)?.[1];
+
+                const decodedActive = decodeURIComponent(active);
+                const decodedItemHref = decodeURIComponent(item.href);
+
+                const isActive =
+                  decodedActive === decodedItemHref ||
+                  (decodedActive.startsWith('/douban') &&
+                    decodedActive.includes(`type=${typeMatch}`) &&
+                    tagMatch &&
+                    decodedActive.includes(`tag=${tagMatch}`));
+                const Icon = item.icon;
+                
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setActive(item.href)}
+                    data-active={isActive}
+                    className='group flex items-center justify-center rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100/50 hover:text-green-600 data-[active=true]:bg-green-500/10 data-[active=true]:text-green-700 font-medium transition-colors duration-200 dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 gap-2 flex-shrink-0'
+                  >
+                    <Icon className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
             </nav>
-
-            {/* 菜单项 */}
-            <div className='flex-1 overflow-y-auto px-2 pt-4'>
-              <div className='space-y-1'>
-                {menuItems.map((item) => {
-                  // 检查当前路径是否匹配这个菜单项
-                  const typeMatch = item.href.match(/type=([^&]+)/)?.[1];
-                  const tagMatch = item.href.match(/tag=([^&]+)/)?.[1];
-
-                  // 解码URL以进行正确的比较
-                  const decodedActive = decodeURIComponent(active);
-                  const decodedItemHref = decodeURIComponent(item.href);
-
-                  const isActive =
-                    decodedActive === decodedItemHref ||
-                    (decodedActive.startsWith('/douban') &&
-                      decodedActive.includes(`type=${typeMatch}`) &&
-                      tagMatch &&
-                      decodedActive.includes(`tag=${tagMatch}`));
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => setActive(item.href)}
-                      data-active={isActive}
-                      className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-sm text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${
-                        isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                      } gap-3 justify-start`}
-                    >
-                      <div className='w-4 h-4 flex items-center justify-center'>
-                        <Icon className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
-                      </div>
-                      {!isCollapsed && (
-                        <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
-                          {item.label}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </aside>
-        
-        {/* 这里负责撑开主内容区域的左侧边距，根据状态变化宽度 */}
-        <div
-          className={`transition-all duration-300 sidebar-offset ${
-            isCollapsed ? 'w-16' : 'w-64'
-          }`}
-        ></div>
+
+        {/* 宽度置为 0，防止撑开 PageLayout 中原本给侧边栏预留的网格（Grid）列宽，实现全屏居中 */}
+        <div className='w-0 h-0 hidden sidebar-offset'></div>
       </div>
     </SidebarContext.Provider>
   );
