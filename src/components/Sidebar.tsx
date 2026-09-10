@@ -144,7 +144,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     {
       icon: History,
       label: 'My-CMS',
-      href: 'https://400821.xyz/vip',
+      href: 'https://today.400823.xyz',
     },
     {
       icon: Rocket,
